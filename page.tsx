@@ -1,334 +1,97 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
 import { Navbar } from '@/components/layout/Navbar';
-import { TickerTape } from '@/components/dashboard/TickerTape';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { LiveChart } from '@/components/charts/LiveChart';
-import { SectorRadar } from '@/components/charts/SectorRadar';
 import { AIChat } from '@/components/dashboard/AIChat';
-import { NewsFeed } from '@/components/dashboard/NewsFeed';
-import { WealthSimulator } from '@/components/dashboard/WealthSimulator';
-import { InvestmentComparison } from '@/components/dashboard/InvestmentComparison';
-import { MoneyRadarScore } from '@/components/dashboard/MoneyRadarScore';
-import { IndiaWealthRank } from '@/components/dashboard/IndiaWealthRank';
-import { SIPMagicCalculator } from '@/components/dashboard/SIPMagicCalculator';
-import { FearGreedIndex } from '@/components/dashboard/FearGreedIndex';
-import { IndiaStateHeatMap } from '@/components/dashboard/IndiaStateHeatMap';
-import { TrendingUp, Landmark, BarChart3, Globe2, ArrowRight, Sparkles } from 'lucide-react';
-import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Sparkles, Brain, Globe, Shield } from 'lucide-react';
 import '@/i18n/config';
 
-type MarketData = {
-  indices: {
-    nifty: { price: number; change: number; changePct: number; high: number; low: number };
-    sensex: { price: number; change: number; changePct: number; high: number; low: number };
-  };
-  forex: {
-    usdinr: { price: number; change: number; changePct: number };
-  };
-  commodities: {
-    gold: { price: number; change: number; changePct: number };
-  };
-  economy: { repoRate: number; inflation: number };
-  timestamp: string;
-};
+const FEATURES = [
+  { icon: Brain, title: 'Investment Guidance', titleHi: 'निवेश मार्गदर्शन', desc: 'Personalized advice on SIP, FD, stocks, gold and more', descHi: 'SIP, FD, स्टॉक, सोने पर व्यक्तिगत सलाह' },
+  { icon: Globe, title: 'Hindi & English', titleHi: 'हिंदी और अंग्रेज़ी', desc: 'Ask in any language, get clear explanations', descHi: 'किसी भी भाषा में पूछें, स्पष्ट जवाब पाएं' },
+  { icon: Shield, title: 'Safe & Unbiased', titleHi: 'सुरक्षित और निष्पक्ष', desc: 'Educational guidance only — not financial advice', descHi: 'केवल शैक्षणिक मार्गदर्शन — वित्तीय सलाह नहीं' },
+  { icon: Sparkles, title: 'Powered by Groq AI', titleHi: 'Groq AI द्वारा संचालित', desc: 'Ultra-fast LLaMA 3 70B intelligence', descHi: 'अति-तीव्र LLaMA 3 70B बुद्धिमत्ता' },
+];
 
-export default function HomePage() {
-  const { t } = useTranslation();
-  const [market, setMarket] = useState<MarketData | null>(null);
-  const [loading, setLoading] = useState(true);
+const SAMPLE_QA = [
+  { q: 'Where should I invest ₹5000 monthly?', a: 'For ₹5000/month, a good split: ₹3000 in ELSS SIP (tax-saving + growth), ₹1000 in a liquid fund (emergency), ₹1000 in Sovereign Gold Bonds. Adjust based on your goal horizon.' },
+  { q: 'मुझे ₹5000 हर महीने कहाँ निवेश करना चाहिए?', a: '₹5000 प्रति माह के लिए: ₹3000 ELSS SIP में (टैक्स बचत + विकास), ₹1000 लिक्विड फंड में (इमरजेंसी), ₹1000 सॉवरेन गोल्ड बॉन्ड में। अपने लक्ष्य के अनुसार समायोजित करें।' },
+  { q: 'Is FD safer than SIP?', a: 'FD offers guaranteed returns (6.5–7.5%) with zero market risk — ideal for short-term goals. SIP in mutual funds gives higher long-term returns (10–15%) but with market volatility. Choose FD for safety, SIP for wealth creation.' },
+];
 
-  useEffect(() => {
-    const fetchMarket = async () => {
-      try {
-        const res = await fetch('/api/market');
-        if (res.ok) {
-          const data = await res.json();
-          setMarket(data);
-        }
-      } catch { /* use nulls */ }
-      finally { setLoading(false); }
-    };
-    fetchMarket();
-    const interval = setInterval(fetchMarket, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
+export default function AIMentorPage() {
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
       <Navbar />
-
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-8 overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-24 pb-12">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
           <div
-            className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full opacity-5 blur-3xl animate-orb-pulse"
-            style={{ background: 'radial-gradient(circle, #F59E0B, transparent)' }}
-          />
-          <div
-            className="absolute bottom-1/4 left-1/4 w-64 h-64 rounded-full opacity-3 blur-3xl animate-orb-pulse"
-            style={{ background: 'radial-gradient(circle, #DC143C, transparent)', animationDelay: '1.5s' }}
-          />
-          {/* Grid pattern */}
-          <div
-            className="absolute inset-0 opacity-[0.015]"
-            style={{
-              backgroundImage: `linear-gradient(var(--accent-amber) 1px, transparent 1px), linear-gradient(90deg, var(--accent-amber) 1px, transparent 1px)`,
-              backgroundSize: '60px 60px',
-            }}
-          />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-10"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-5"
+            style={{ borderColor: 'var(--accent-amber-border)', background: 'var(--accent-amber-glow)', color: 'var(--accent-amber)' }}
           >
-            {/* Badge */}
+            <Sparkles size={14} />
+            <span className="text-xs font-mono font-semibold">GROQ LLAMA 3 70B • BILINGUAL</span>
+          </div>
+          <h1 className="font-display font-black mb-3" style={{ fontSize: 'clamp(1.8rem, 5vw, 3rem)', color: 'var(--text-primary)' }}>
+            AI <span className="text-gradient-amber">Financial Mentor</span>
+          </h1>
+          <p className="max-w-xl mx-auto text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+            Your intelligent finance guide — in Hindi or English. Ask about investments, savings, markets, tax, and more.
+          </p>
+        </motion.div>
+
+        {/* Feature pills */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          {FEATURES.map((f, i) => (
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6"
-              style={{
-                borderColor: 'var(--accent-amber-border)',
-                background: 'var(--accent-amber-glow)',
-                color: 'var(--accent-amber)',
-              }}
+              key={f.title}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08 }}
+              className="p-3 rounded-xl text-center"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              <span className="text-xs font-mono font-semibold">AI-POWERED • REAL-TIME • BILINGUAL</span>
+              <f.icon size={20} style={{ color: 'var(--accent-amber)', margin: '0 auto 6px' }} />
+              <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{f.title}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{f.desc}</p>
             </motion.div>
-
-            <h1
-              className="font-display font-black mb-4 leading-tight"
-              style={{
-                fontSize: 'clamp(2rem, 6vw, 4.5rem)',
-                color: 'var(--text-primary)',
-              }}
-            >
-              <span className="text-gradient-amber">ArthNetra</span>
-              <br />
-              <span style={{ color: 'var(--text-primary)', fontSize: '0.65em', fontWeight: '600' }}>
-                {t('hero.tagline')}
-              </span>
-            </h1>
-
-            <p
-              className="max-w-2xl mx-auto mb-8"
-              style={{
-                color: 'var(--text-secondary)',
-                fontSize: 'clamp(0.85rem, 2vw, 1.05rem)',
-                lineHeight: '1.7',
-              }}
-            >
-              {t('hero.subtitle')}
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link
-                href="#dashboard"
-                className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:scale-105"
-                style={{ background: 'var(--accent-amber)', color: '#000' }}
-              >
-                {t('hero.cta')}
-                <ArrowRight size={16} />
-              </Link>
-              <Link
-                href="#ai-mentor"
-                className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:scale-105"
-                style={{
-                  border: '1px solid var(--border-accent)',
-                  color: 'var(--text-primary)',
-                  background: 'var(--accent-amber-glow)',
-                }}
-              >
-                {t('hero.ctaSecondary')}
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Ticker Tape */}
-      <TickerTape />
-
-      {/* Main Dashboard */}
-      <div id="dashboard" className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-
-        {/* Section header */}
-        <div className="flex items-center gap-3">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: 'var(--accent-amber-glow)', color: 'var(--accent-amber)' }}
-          >
-            <BarChart3 size={16} />
-          </div>
-          <h2 className="font-display font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
-            {t('dashboard.title')}
-          </h2>
-          <span className="flex items-center gap-1 text-xs font-mono ml-auto" style={{ color: 'var(--accent-green)' }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            {t('dashboard.live')}
-          </span>
+          ))}
         </div>
 
-        {/* Stat Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {loading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="shimmer-loading rounded-xl h-24" />
-            ))
-          ) : (
-            <>
-              <StatCard
-                title={t('dashboard.nifty')}
-                value={`₹${market?.indices.nifty.price.toLocaleString('en-IN') || '--'}`}
-                changePct={market?.indices.nifty.changePct}
-                change={market?.indices.nifty.change}
-                isLive
-                delay={0}
-                icon={<TrendingUp size={14} />}
-              />
-              <StatCard
-                title={t('dashboard.sensex')}
-                value={market?.indices.sensex.price.toLocaleString('en-IN') || '--'}
-                changePct={market?.indices.sensex.changePct}
-                change={market?.indices.sensex.change}
-                isLive
-                delay={0.05}
-                icon={<BarChart3 size={14} />}
-              />
-              <StatCard
-                title={t('dashboard.gold')}
-                value={`₹${market?.commodities.gold.price.toLocaleString('en-IN') || '--'}`}
-                changePct={market?.commodities.gold.changePct}
-                change={market?.commodities.gold.change}
-                delay={0.1}
-                icon={<span style={{ fontSize: '14px' }}>🪙</span>}
-              />
-              <StatCard
-                title={t('dashboard.rupee')}
-                value={`₹${market?.forex.usdinr.price.toFixed(2) || '--'}`}
-                changePct={market?.forex.usdinr.changePct}
-                change={market?.forex.usdinr.change}
-                delay={0.15}
-                icon={<Globe2 size={14} />}
-              />
-              <StatCard
-                title={t('dashboard.repoRate')}
-                value={`${market?.economy.repoRate || 6.5}%`}
-                subtitle="RBI Policy Rate"
-                delay={0.2}
-                icon={<Landmark size={14} />}
-              />
-              <StatCard
-                title={t('dashboard.inflation')}
-                value={`${market?.economy.inflation || 4.83}%`}
-                subtitle="CPI (Annual)"
-                delay={0.25}
-                icon={<span style={{ fontSize: '14px' }}>📊</span>}
-              />
-            </>
-          )}
-        </div>
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <LiveChart symbol="NIFTY50" exchange="NSE" title="NIFTY 50" />
-          <LiveChart symbol="SENSEX" exchange="BSE" title="SENSEX" />
-        </div>
-
-        {/* Sector + News Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <SectorRadar />
-          <NewsFeed />
-        </div>
-
-        {/* More Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <LiveChart symbol="USD/INR" exchange="NSE" title="USD/INR Exchange Rate" />
-          <LiveChart symbol="BANKNIFTY" exchange="NSE" title="Bank NIFTY" />
-        </div>
-
-        {/* AI Mentor */}
-        <div id="ai-mentor">
-          <div className="flex items-center gap-3 mb-4">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'var(--accent-amber-glow)', color: 'var(--accent-amber)' }}
-            >
-              <span style={{ fontSize: '16px' }}>🤖</span>
-            </div>
-            <h2 className="font-display font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
-              {t('aiMentor.title')}
-            </h2>
-          </div>
+        {/* Main Chat */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-10">
           <AIChat />
-        </div>
+        </motion.div>
 
-        {/* Investment Comparison */}
-        <InvestmentComparison />
-
-        {/* ═══ NEW VIRAL FEATURES ═══ */}
-        <div className="flex items-center gap-3 pt-2">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: 'var(--accent-amber-glow)', color: 'var(--accent-amber)' }}
-          >
-            <Sparkles size={16} />
-          </div>
-          <h2 className="font-display font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
-            Financial Intelligence Suite
+        {/* Sample Q&A */}
+        <div>
+          <h2 className="font-display font-bold text-lg mb-4" style={{ color: 'var(--text-primary)' }}>
+            Sample Conversations
           </h2>
-          <span className="text-xs font-mono px-2 py-0.5 rounded-full ml-auto" style={{ background: 'var(--accent-amber-glow)', color: 'var(--accent-amber)', border: '1px solid var(--accent-amber-border)' }}>
-            NEW
-          </span>
-        </div>
-
-        {/* Money Radar Score */}
-        <MoneyRadarScore />
-
-        {/* India Wealth Rank */}
-        <IndiaWealthRank />
-
-        {/* SIP Magic Calculator */}
-        <SIPMagicCalculator />
-
-        {/* Fear & Greed + State Heat Map */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <FearGreedIndex />
-          <IndiaStateHeatMap />
-        </div>
-
-        {/* Wealth Simulator */}
-        <WealthSimulator />
-
-        {/* Footer */}
-        <footer
-          className="text-center py-8 border-t"
-          style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}
-        >
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <span className="font-display font-bold" style={{ color: 'var(--accent-amber)' }}>
-              ArthNetra
-            </span>
-            <span className="text-xs font-mono">v1.0</span>
+          <div className="space-y-4">
+            {SAMPLE_QA.map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 + i * 0.1 }}
+                className="rounded-xl overflow-hidden"
+                style={{ border: '1px solid var(--border-subtle)' }}
+              >
+                <div className="px-4 py-3" style={{ background: 'var(--accent-amber-glow)' }}>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--accent-amber)' }}>Q: {item.q}</p>
+                </div>
+                <div className="px-4 py-3" style={{ background: 'var(--bg-card)' }}>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>💡 {item.a}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
-          <p className="text-xs max-w-md mx-auto">
-            Disclaimer: This platform is for educational and informational purposes only.
-            Not financial advice. Please consult a SEBI-registered advisor before investing.
-            Data sourced from Twelve Data, Alpha Vantage, and Finnhub.
-          </p>
-          <p className="text-xs mt-2">
-            अस्वीकरण: यह प्लेटफ़ॉर्म केवल शैक्षणिक उद्देश्यों के लिए है। वित्तीय सलाह नहीं।
-          </p>
-        </footer>
+        </div>
+
+        <p className="text-center text-xs mt-8" style={{ color: 'var(--text-muted)' }}>
+          ⚠️ AI responses are for educational purposes only. Consult a SEBI-registered advisor before investing.
+        </p>
       </div>
     </div>
   );
