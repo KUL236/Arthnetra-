@@ -1,0 +1,43 @@
+# ============================================================
+# ArthNetra — Netlify Environment Variables
+# Netlify Dashboard → Site configuration → Environment variables → Add variable
+# ============================================================
+# ⚠️  Never commit real keys — add them directly in the Netlify dashboard
+
+# Supabase (public — safe to expose)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key_here
+
+# Financial APIs (server-side only — never exposed to browser)
+TWELVE_DATA_API_KEY=your_key_here
+DATA_GOV_API_KEY=your_key_here
+FINNHUB_API_KEY=your_key_here
+ALPHA_VANTAGE_API_KEY=your_key_here
+
+# AI — Gemini (PRIMARY — used for chat + sector data + chart simulation)
+GEMINI_API_KEY=your_key_here
+
+# AI — Groq (FALLBACK for chat only if Gemini fails)
+GROQ_API_KEY=your_key_here
+
+# App URL (update to your actual Netlify URL after deployment)
+NEXT_PUBLIC_APP_URL=https://your-app.netlify.app
+
+# ============================================================
+# REQUIRED SUPABASE CONFIGURATION (Dashboard → Authentication)
+# ============================================================
+# 1. Providers → Google
+#    - Enable Google provider
+#    - Add Client ID and Client Secret from Google Cloud Console
+#    - Google Cloud Console → OAuth → Authorized redirect URI:
+#      https://<YOUR_PROJECT_ID>.supabase.co/auth/v1/callback
+#
+# 2. URL Configuration
+#    Site URL:        https://your-app.netlify.app
+#    Redirect URLs:   https://your-app.netlify.app/auth/callback
+#                     http://localhost:3000/auth/callback
+#
+# 3. Email settings
+#    - "Email OTP" / Magic Link must be ENABLED
+#    - OTP expiry: 600 seconds (10 min) recommended
+# ============================================================
