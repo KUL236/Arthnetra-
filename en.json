@@ -1,0 +1,134 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "markets": "Markets",
+    "invest": "Invest",
+    "learn": "Learn",
+    "simulator": "Simulator",
+    "aiMentor": "AI Mentor",
+    "profile": "Profile"
+  },
+  "hero": {
+    "tagline": "India's AI Financial Intelligence Platform",
+    "subtitle": "Real-time market data, AI-powered insights, and personalized financial guidance — in Hindi & English",
+    "cta": "Explore Dashboard",
+    "ctaSecondary": "Ask AI Mentor"
+  },
+  "dashboard": {
+    "title": "Financial Dashboard",
+    "nifty": "NIFTY 50",
+    "sensex": "SENSEX",
+    "gold": "Gold (24K)",
+    "rupee": "USD/INR",
+    "inflation": "Inflation Rate",
+    "repoRate": "RBI Repo Rate",
+    "loading": "Loading live data...",
+    "lastUpdated": "Last updated",
+    "live": "LIVE"
+  },
+  "markets": {
+    "title": "Live Markets",
+    "indices": "Indices",
+    "sectors": "Sectors",
+    "stocks": "Stocks",
+    "news": "News",
+    "change": "Change",
+    "volume": "Volume",
+    "high": "Day High",
+    "low": "Day Low"
+  },
+  "invest": {
+    "title": "Investment Comparison",
+    "subtitle": "Compare investment options to find what suits you",
+    "amount": "Monthly Investment",
+    "duration": "Duration (Years)",
+    "compare": "Compare Now",
+    "fd": "Fixed Deposit",
+    "sip": "SIP / Mutual Fund",
+    "stocks": "Direct Stocks",
+    "gold": "Gold",
+    "ipo": "IPO",
+    "bonds": "Government Bonds",
+    "returns": "Expected Returns",
+    "risk": "Risk Level",
+    "liquidity": "Liquidity",
+    "tax": "Tax Implications",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "safe": "Safe",
+    "moderate": "Moderate",
+    "aggressive": "Aggressive"
+  },
+  "simulator": {
+    "title": "Wealth Growth Simulator",
+    "subtitle": "Visualize your financial future",
+    "principal": "Initial Investment (₹)",
+    "monthly": "Monthly SIP (₹)",
+    "rate": "Expected Return (%)",
+    "years": "Time Horizon (Years)",
+    "calculate": "Simulate Growth",
+    "futureValue": "Future Value",
+    "totalInvested": "Total Invested",
+    "wealthGained": "Wealth Gained",
+    "inflationAdjusted": "Inflation-Adjusted Value"
+  },
+  "aiMentor": {
+    "title": "AI Financial Mentor",
+    "subtitle": "Ask anything about finance — in Hindi or English",
+    "placeholder": "Ask e.g. Where should I invest ₹5000 monthly?",
+    "send": "Ask",
+    "thinking": "Thinking...",
+    "suggestions": [
+      "Where should I invest ₹5000 monthly?",
+      "Is FD safer than SIP?",
+      "Which sector is growing fastest?",
+      "How to start investing at 22?",
+      "Explain NIFTY 50 simply"
+    ]
+  },
+  "sectors": {
+    "title": "Sector Radar",
+    "banking": "Banking",
+    "it": "Information Technology",
+    "pharma": "Pharma",
+    "ev": "Electric Vehicles",
+    "ai": "Artificial Intelligence",
+    "realestate": "Real Estate",
+    "growth": "Growth",
+    "risk": "Risk",
+    "momentum": "Momentum"
+  },
+  "learn": {
+    "title": "Financial Learning Hub",
+    "subtitle": "Master personal finance from basics to advanced",
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "otp": "Send OTP",
+    "verifyOtp": "Verify OTP",
+    "welcomeBack": "Welcome Back",
+    "createAccount": "Create Account",
+    "orContinueWith": "or continue with"
+  },
+  "common": {
+    "rupee": "₹",
+    "percent": "%",
+    "up": "UP",
+    "down": "DOWN",
+    "stable": "STABLE",
+    "error": "Something went wrong. Please try again.",
+    "retry": "Retry",
+    "seeAll": "See All",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}
