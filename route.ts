@@ -1,159 +1,110 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const TWELVE_DATA_KEY = process.env.TWELVE_DATA_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
 const GEMINI_MODEL = 'gemini-2.0-flash';
 
-const SYSTEM_PROMPT = `You are ArthNetra AI — India's most intelligent financial mentor and guide. 
-You help Indians understand money, investments, banking, and the economy.
+// Updated realistic fallback (May 2026)
+const FALLBACK_CHARTS: Record<string, { base: number; volatility: number }> = {
+  NIFTY50:   { base: 25120, volatility: 0.3 },
+  SENSEX:    { base: 82340, volatility: 0.3 },
+  'USD/INR': { base: 84.18, volatility: 0.05 },
+  GOLD:      { base: 96500, volatility: 0.2 },
+  BANKNIFTY: { base: 55400, volatility: 0.4 },
+};
 
-CORE RULES:
-1. NEVER provide specific real-time stock prices — you don't have live data access
-2. Always explain in simple, relatable terms using Indian examples (chai, autorickshaw, daal-roti analogies welcome)
-3. Support BOTH Hindi and English — if user writes in Hindi, respond in Hindi; if English, respond in English
-4. Be warm, educational, and empowering — not intimidating
-5. Always mention risk and suggest diversification
-6. For investment questions, always clarify the user's risk tolerance and time horizon matters
-7. Mention SEBI, RBI, and regulatory frameworks when relevant
-8. Use ₹ symbol for Indian Rupees
-9. Keep responses concise but complete — mobile-friendly length
-10. Structure responses with clear sections when explaining complex topics
-
-Your personality: Wise elder + modern AI — like a knowledgeable CA uncle who speaks plainly.
-
-Topics you excel at:
-- SIP, Mutual Funds, FD, PPF, NPS, ELSS
-- Stock market basics and sectors
-- IPO investment guidance
-- Gold vs Stocks vs FD comparisons
-- Tax saving under 80C, capital gains
-- RBI policies and their impact
-- Inflation and its effects on savings
-- Budget planning and emergency funds
-- Insurance basics (term, health)
-- Digital payments and fintech in India
-
-Always end with a motivational but realistic note about financial discipline.`;
-
-// ── Gemini (primary) ────────────────────────────────────────────────
-async function callGemini(messages: { role: string; content: string }[], langInstruction: string): Promise<string> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-
-  // Build Gemini contents array (no system role — prepend to first user message)
-  const systemText = `${SYSTEM_PROMPT}\n\n${langInstruction}`;
-  const contents = messages.map((m, i) => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: i === 0 && m.role === 'user' ? `${systemText}\n\n${m.content}` : m.content }],
-  }));
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents,
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 1024,
-      },
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini error: ${err}`);
+function generateFallbackTimeSeries(basePrice: number, points: number, volatility: number) {
+  const data = [];
+  let price = basePrice;
+  const now = Date.now();
+  for (let i = points; i >= 0; i--) {
+    const change = (Math.random() - 0.48) * volatility;
+    price = Math.max(price * (1 + change / 100), 1);
+    data.push({
+      time: new Date(now - i * 5 * 60 * 1000).toISOString(),
+      value: Math.round(price * 100) / 100,
+      open: Math.round(price * (1 - Math.random() * 0.002) * 100) / 100,
+      close: Math.round(price * 100) / 100,
+      high: Math.round(price * (1 + Math.random() * 0.003) * 100) / 100,
+      low: Math.round(price * (1 - Math.random() * 0.003) * 100) / 100,
+    });
   }
-
-  const data = await res.json();
-  const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!reply) throw new Error('Gemini returned empty response');
-  return reply;
+  return data;
 }
 
-// ── Groq (fallback) ─────────────────────────────────────────────────
-async function callGroq(messages: { role: string; content: string }[], langInstruction: string): Promise<string> {
-  const res = await fetch(GROQ_URL, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${GROQ_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: GROQ_MODEL,
-      messages: [
-        { role: 'system', content: `${SYSTEM_PROMPT}\n\n${langInstruction}` },
-        ...messages,
-      ],
-      max_tokens: 1024,
-      temperature: 0.7,
-      stream: false,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Groq error: ${err}`);
-  }
-
-  const data = await res.json();
-  const reply = data.choices?.[0]?.message?.content;
-  if (!reply) throw new Error('Groq returned empty response');
-  return reply;
-}
-
-// ── Route Handler ───────────────────────────────────────────────────
-export async function POST(request: NextRequest) {
+// Use Gemini to get a realistic intraday price series when TwelveData fails
+async function getGeminiTimeSeries(symbol: string, interval: string): Promise<{ time: string; value: number }[] | null> {
+  if (!GEMINI_API_KEY) return null;
   try {
-    const { message, language, conversationHistory } = await request.json();
+    const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+    const prompt = `Today is ${today}. Generate a realistic intraday price series for NSE symbol "${symbol}" at ${interval} intervals for the last trading session.
+Return ONLY a JSON array of 30 objects: [{"time":"HH:MM","value":NUMBER}, ...] — no markdown, no explanation.
+Base the prices on realistic current market levels for this instrument.`;
 
-    if (!message) {
-      return NextResponse.json({ error: 'Message is required' }, { status: 400 });
-    }
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
+      }),
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) return null;
+    const cleaned = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    if (!Array.isArray(parsed) || parsed.length < 10) return null;
+    // Normalize time to ISO format
+    const baseDate = new Date();
+    baseDate.setHours(9, 15, 0, 0);
+    return parsed.map((p: { time?: string; value?: number }, i: number) => ({
+      time: p.time
+        ? `${new Date().toISOString().split('T')[0]}T${p.time}:00`
+        : new Date(baseDate.getTime() + i * 5 * 60000).toISOString(),
+      value: typeof p.value === 'number' ? p.value : 0,
+    }));
+  } catch { return null; }
+}
 
-    const langInstruction = language === 'hi'
-      ? 'The user prefers Hindi. Please respond in Hindi (Devanagari script).'
-      : 'The user prefers English. Please respond in English.';
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const symbol = searchParams.get('symbol') || 'NIFTY50';
+  const interval = searchParams.get('interval') || '5min';
+  const exchange = searchParams.get('exchange') || 'NSE';
 
-    const history = (conversationHistory || []).slice(-6);
-    const messages = [...history, { role: 'user', content: message }];
+  // 1. Try TwelveData
+  try {
+    const url = `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=${interval}&outputsize=50&exchange=${exchange}&apikey=${TWELVE_DATA_KEY}`;
+    const res = await fetch(url, { next: { revalidate: 60 } });
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    if (data.status === 'error' || !data.values) throw new Error('No data');
+    const series = data.values.reverse().map((v: { datetime: string; open: string; high: string; low: string; close: string }) => ({
+      time: v.datetime,
+      value: parseFloat(v.close),
+      open: parseFloat(v.open),
+      high: parseFloat(v.high),
+      low: parseFloat(v.low),
+      close: parseFloat(v.close),
+    }));
+    return NextResponse.json({ symbol, series, source: 'live' });
+  } catch { /* fall through */ }
 
-    let reply: string | null = null;
-    let usedModel = '';
-
-    // Try Gemini first
-    if (GEMINI_API_KEY) {
-      try {
-        reply = await callGemini(messages, langInstruction);
-        usedModel = GEMINI_MODEL;
-      } catch (geminiErr) {
-        console.warn('Gemini failed, falling back to Groq:', geminiErr);
-      }
-    }
-
-    // Fall back to Groq
-    if (!reply && GROQ_API_KEY) {
-      try {
-        reply = await callGroq(messages, langInstruction);
-        usedModel = GROQ_MODEL;
-      } catch (groqErr) {
-        console.error('Groq also failed:', groqErr);
-      }
-    }
-
-    if (!reply) {
-      return NextResponse.json({
-        error: 'AI service temporarily unavailable',
-        fallback: language === 'hi'
-          ? 'माफ़ करें, AI सेवा अभी उपलब्ध नहीं है। कृपया पुनः प्रयास करें।'
-          : 'AI service is temporarily unavailable. Please try again shortly.',
-      }, { status: 503 });
-    }
-
-    return NextResponse.json({ reply, model: usedModel });
-  } catch (err) {
-    console.error('AI chat error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  // 2. Try Gemini for realistic simulated data
+  const geminiSeries = await getGeminiTimeSeries(symbol, interval);
+  if (geminiSeries) {
+    return NextResponse.json({ symbol, series: geminiSeries, source: 'gemini-sim' });
   }
+
+  // 3. Pure fallback simulation
+  const fallback = FALLBACK_CHARTS[symbol] || { base: 1000, volatility: 0.3 };
+  return NextResponse.json({
+    symbol,
+    series: generateFallbackTimeSeries(fallback.base, 50, fallback.volatility),
+    source: 'simulated',
+  });
 }
